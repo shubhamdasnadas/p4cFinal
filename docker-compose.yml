@@ -1,20 +1,30 @@
+version: "3.9"
+
 services:
   mongodb:
     image: mongo:latest
     container_name: mongodb_container
+    restart: always
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
 
   nextjs_app:
-    build: .
+    container_name: nextjs_container
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "3000:3000"
     environment:
-      - MONGODB_URI=mongodb://192.168.9.89:27017/new_p4c
+      - MONGODB_COMPASS_URL=mongodb://192.168.9.89:27017/new_p4c
     depends_on:
       - mongodb
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: always
 
 volumes:
   mongo_data:

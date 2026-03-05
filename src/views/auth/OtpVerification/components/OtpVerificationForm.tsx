@@ -40,30 +40,37 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
         resolver: zodResolver(validationSchema),
     })
 
-    const onOtpSend = async () => {
+    const onOtpSend = async (values: ForgotPasswordFormSchema) => {
+
+        console.log("submit")
         setSubmitting(true)
 
         try {
-            await sleep(1000)
 
-            setOtpVerified?.('OTP verified!')
-
-            // ✅ LOGIN WITH DEFAULT ADMIN
-            const result = await signIn({
-                email: 'admin-01@ecme.com',
-                password: '123Qwe',
+            const res = await fetch("/api/auth/verify-otp", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    phoneNumber: localStorage.getItem("loginPhone"),
+                    otp: values.otp,
+                }),
             })
 
-            if (result?.status === 'success') {
-                navigate('/dashboards/ecommerce')
-            } else {
-                setMessage?.(result?.message || 'Login failed')
+            const data = await res.json()
+
+            if (!res.ok) {
+                setMessage?.(data.message)
+                return
             }
 
-        } catch (errors) {
-            setMessage?.(
-                typeof errors === 'string' ? errors : 'Some error occured!',
-            )
+            setOtpVerified?.("OTP Verified Successfully")
+
+            navigate("/dashboards/ecommerce")
+
+        } catch (err) {
+            setMessage?.("Verification failed")
         } finally {
             setSubmitting(false)
         }

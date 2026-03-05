@@ -100,20 +100,36 @@ const SignInForm = ({
 
     const handleSendOtp = async (values: SignInFormSchema) => {
         if (disableSubmit) return
+        console.log("send")
 
         try {
             setSubmitting(true)
             setMessage('')
 
-            // simulate API call
-            setTimeout(() => {
+            const phoneNumber = values.dialCode + values.phoneNumber
+
+            const res = await fetch("/api/auth/send-otp", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ phoneNumber }),
+            })
+
+            const data = await res.json()
+
+            if (!res.ok) {
+                setMessage(data.message)
                 setSubmitting(false)
-                setShowOtpScreen(true)
-            }, 500)
+                return
+            }
+
+            setShowOtpScreen(true)
 
         } catch (error: any) {
+            setMessage(error.message || "Failed to send OTP")
+        } finally {
             setSubmitting(false)
-            setMessage(error?.message || 'Failed to send OTP')
         }
     }
 
@@ -135,8 +151,8 @@ const SignInForm = ({
                         errorMessage={errors.dialCode?.message}
                     >
                         <label className="form-label mb-2">
-                            Phone number
-                        </label>
+                            Phone number Update
+                        </label> 
 
                         <Controller
                             name="dialCode"
